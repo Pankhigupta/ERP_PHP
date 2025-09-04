@@ -1,32 +1,28 @@
-# Use official PHP image with Apache
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
-# Install system dependencies and PHP extensions required by Laravel
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git unzip libpq-dev libonig-dev libzip-dev curl \
-    && docker-php-ext-install pdo pdo_pgsql mbstring zip bcmath opcache
+    git curl libpng-dev libonig-dev libxml2-dev zip unzip \
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Enable Apache mod_rewrite for Laravel routing
-RUN a2enmod rewrite
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy Composer from official Composer image
+# Install Composer
 COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
-# Copy project files into container
-COPY . .
+# Set working directory
+WORKDIR /var/www
 
-# Install PHP dependencies (Laravel)
+# Copy only composer files first (better for Docker caching)
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set correct permissions for Laravel storage and bootstrap cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Copy the rest of the application
+COPY . .
 
-# Expose port 80 (Apache)
-EXPOSE 80
+# Generate optimized cache
+RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Expose port 8000 and run Laravel
+EXPOSE 8000
+CMD php artisan serve --host=0.0.0.0 --port=8000
