@@ -25,3 +25,10 @@ EXPOSE 8000
 
 # Start Laravel
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+
+# Run artisan commands on container start
+CMD php artisan key:generate --force && \
+    php artisan migrate --force && \
+    php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan serve --host=0.0.0.0 --port=8000
