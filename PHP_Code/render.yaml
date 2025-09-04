@@ -1,7 +1,7 @@
 services:
   - type: web
     name: erp-php
-    runtime: php
+    env: php
     plan: free
     buildCommand: |
       composer install --no-dev --optimize-autoloader
@@ -15,3 +15,29 @@ services:
         value: false
       - key: APP_KEY
         sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: erp-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: erp-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: erp-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: erp-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: erp-db
+          property: password
+
+databases:
+  - name: erp-db
+    plan: free
