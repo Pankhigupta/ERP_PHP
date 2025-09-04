@@ -1,13 +1,9 @@
 services:
   - type: web
     name: erp-php
-    env: php
+    env: docker
     plan: free
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan config:clear
-      php artisan cache:clear
-    startCommand: php artisan serve --host 0.0.0.0 --port 10000
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: APP_ENV
         value: production
